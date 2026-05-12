@@ -4,7 +4,7 @@ import argparse
 from dotenv import load_dotenv
 from google.genai import types
 from google import genai
-
+from functions.get_files_info import get_files_info
 
 
 
@@ -16,6 +16,8 @@ def main():
 
     if api_key is None:
         raise RuntimeError("api key not found!")
+    
+
 
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("user_prompt", type=str, help="User prompt")
