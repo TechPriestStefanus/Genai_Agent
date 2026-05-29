@@ -2,6 +2,7 @@ import os
 import json
 import argparse
 import sys
+import time
 from dotenv import load_dotenv
 from google.genai import types
 from google import genai
@@ -36,12 +37,12 @@ def main():
 
     client = genai.Client(api_key=api_key)
 
-    
+    messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]   
 
     for _ in range(loop_range):
         #updated response to messages
         #response = client.models.generate_content(model= "gemini-2.5-flash", contents= args+"In one paragraph.")
-        messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]   
+        
         response = client.models.generate_content(model="gemini-2.5-flash", contents=messages, config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt, temperature = 0), )
                                                 
         user_prompt = (args.user_prompt)
@@ -52,7 +53,8 @@ def main():
         
         if response.candidates:  
             for candidate in response.candidates:
-                messages.append(candidate.content)
+                if candidate.content:
+                    messages.append(candidate.content)
 
 
         def function_loop():
@@ -81,6 +83,8 @@ def main():
             print(f"Response tokens: {response_tokens}")
             if called_functions:
                 function_loop()
+                if results_list:
+                    messages.append(types.Content(role="user", parts=results_list))
                 
                     
 
@@ -90,14 +94,19 @@ def main():
         else:
             if called_functions:
                 function_loop()
+                if results_list:
+                    messages.append(types.Content(role="user", parts=results_list))
+                
             else:
                 print(response.text)
         
-        messages.append(types.Content(role="user", parts=results_list))
+        
         if not called_functions:
             break
         if _ == (loop_range-1):
             sys.exit(_ExitCode = 1)
+
+        time.sleep(30)
 
         
 
